@@ -1,0 +1,40 @@
+	Vector3d theLight;		// the light direction, normalized
+	COLOR_C id, is, lightxmat, finalIntensity;
+	Vector3d specLight, viewVec;
+	double diff, spec;
+	double ks = 1.0;
+	double kd = 1.0;
+	double ka = 1.0;
+	
+	// ambient lighting
+	lightxmat.set(mat.color * mat.ca); 
+	finalIntensity.set((ka * lightxmat));
+		
+		
+	for (int i=0; i < 2; i++) {
+		if( lights[i].type == 0) {
+			theLight = lights[i].info.normalize();
+		} else if (lights[i].type == 1) {
+			theLight = (hit.hitpoint - lights[i].info).normalize();
+		}
+			 
+		// do diffuse lighting
+		lightxmat.set((mat.color * mat.cd) * lights[i].color); 
+		
+		if ((diff = theLight * hit.normal) < 0.0) {
+			id.set(-diff * lightxmat);
+			finalIntensity.set(finalIntensity + (kd * id));
+		}
+		
+		// do specular lighting	
+		lightxmat.set(mat.cs * lights[i].color); 
+		specLight = theLight - 2 * (theLight * hit.normal) * hit.normal;
+		viewVec = (camera.vPoint - hit.hitpoint).normalize();
+		
+		if ((spec = specLight * viewVec) > 0.0) {
+			is.set((pow(spec, mat.n)) * lightxmat);
+			finalIntensity.set(finalIntensity + (ks * is));
+		} 
+	}
+	return finalIntensity;
+}
